@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+jieba
+mecab-python3
