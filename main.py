@@ -1,6 +1,8 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 from utils.parser import parse_chapters, get_word_count
+from uuid import uuid4
+from utils.mongodb import db
 
 app = FastAPI(
     title="Novel Parser",
@@ -24,27 +26,30 @@ async def parse_novel(file: UploadFile = File(...), locale: str = "en"):
         )
 
     try:
+        novel_id = str(uuid4())
         content = await file.read()
         text = content.decode('utf-8')
-
         chapters = parse_chapters(text, locale)
 
-        total_chapters = len(chapters)
         chapter_stats = []
-
         for chapter in chapters:
             word_count = get_word_count(chapter["content"], locale)
-            chapter_stats.append({
+            chapter_doc = {
+                "novel_id": novel_id,
+                "novel_name": file.filename.rsplit('.', maxsplit=1)[0],
                 "title": chapter["title"],
+                "content": chapter["content"],
                 "paragraph_count": len(chapter["content"].split('\n')),
                 "word_count": word_count,
-                "preview": chapter["content"]
-            })
+                "locale": locale
+            }
+            db.insert_chapter(chapter_doc)
+            chapter_stats.append(chapter_doc)
 
         return {
-            "total_chapters": total_chapters,
+            "total_chapters": len(chapters),
             "chapters": chapter_stats,
-            "structure": [chapter["title"] for chapter in chapters]
+            "structure": [{"id": chapter["id"], "title": chapter["title"]} for chapter in chapter_stats]
         }
 
     except UnicodeDecodeError:

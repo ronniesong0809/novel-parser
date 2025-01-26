@@ -2,3 +2,5 @@ fastapi
 uvicorn
 jieba
 mecab-python3
+pymongo
+python-dotenv
