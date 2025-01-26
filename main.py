@@ -49,7 +49,7 @@ async def parse_novel(file: UploadFile = File(...), locale: str = "en"):
         return {
             "total_chapters": len(chapters),
             "chapters": chapter_stats,
-            "structure": [{"id": chapter["id"], "title": chapter["title"]} for chapter in chapter_stats]
+            "structure": [{"title": chapter["title"]} for chapter in chapter_stats]
         }
 
     except UnicodeDecodeError:
